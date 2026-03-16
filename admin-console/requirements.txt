@@ -1,0 +1,11 @@
+flask==3.0.0
+flask-admin==1.6.1
+flask-login==0.6.3
+flask-wtf==1.2.1
+sqlalchemy==2.0.25
+psycopg2-binary==2.9.9
+wtforms==3.1.1
+python-dotenv==1.0.0
+requests==2.31.0
+jinja2==3.1.2
+werkzeug==3.0.1

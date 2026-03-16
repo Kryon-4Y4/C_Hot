@@ -1,0 +1,14 @@
+# Task Scheduler Beat: 基于 data-layer 构建
+FROM phone-parts/data-layer:latest
+
+WORKDIR /app
+
+# 复制任务调度额外依赖
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 复制应用代码
+COPY app/ ./app/
+
+# 启动Celery Beat
+CMD ["celery", "-A", "app.worker", "beat", "--loglevel=info"]
