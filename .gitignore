@@ -1,0 +1,284 @@
+# ============================================
+# Git Ignore File
+# 手机维修配件外贸数据管理系统
+# ============================================
+
+# --------------------------------------------
+# 环境变量和敏感配置
+# --------------------------------------------
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+!.env.example
+
+# --------------------------------------------
+# Python
+# --------------------------------------------
+# 字节码和缓存
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 虚拟环境
+venv/
+ENV/
+env/
+.venv/
+env.bak/
+venv.bak/
+
+# 构建和分发
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# 安装日志
+pip-log.txt
+pip-delete-this-directory.txt
+
+# 单元测试和覆盖率
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath
+*.sage.py
+
+# 类型检查
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# --------------------------------------------
+# Node.js / Frontend
+# --------------------------------------------
+# 依赖
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# 构建输出
+dist/
+dist-ssr/
+*.local
+
+# 编辑器配置
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# --------------------------------------------
+# Docker
+# --------------------------------------------
+# Docker Compose 覆盖文件
+docker-compose.override.yml
+docker-compose.*.yml
+
+# Docker 卷数据（如果本地有）
+docker-volumes/
+
+# --------------------------------------------
+# 数据库
+# --------------------------------------------
+# 本地数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 数据库备份
+*.sql.gz
+*.dump
+backups/
+
+# --------------------------------------------
+# 日志文件
+# --------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# --------------------------------------------
+# 临时文件
+# --------------------------------------------
+tmp/
+temp/
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# --------------------------------------------
+# 操作系统
+# --------------------------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.nfs*
+
+# --------------------------------------------
+# IDE和编辑器
+# --------------------------------------------
+# VS Code
+.vscode/
+*.code-workspace
+
+# IntelliJ / PyCharm / WebStorm
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Sublime Text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+*.swp
+*.swo
+*~
+.netrwhist
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+
+# --------------------------------------------
+# 数据文件（可选，根据需要调整）
+# --------------------------------------------
+# 如果CSV数据是示例且需要版本控制，请注释掉以下行
+# crawler/*.csv
+# crawler/*.xlsx
+
+# --------------------------------------------
+# 静态资源构建输出
+# --------------------------------------------
+# 如果静态文件是构建生成的，应该忽略
+# 如果是手动放置的，保留
+# documentation/site/
+
+# --------------------------------------------
+# 证书和密钥
+# --------------------------------------------
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+
+# --------------------------------------------
+# 其他
+# --------------------------------------------
+# 本地配置文件
+local.settings.json
+local.config.js
+
+# 测试数据
+test-data/
+fixtures/
+
+# 上传文件（如果有文件上传功能）
+uploads/
+media/
+
+# 文档生成临时文件
+documentation/site/
