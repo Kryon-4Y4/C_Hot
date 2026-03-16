@@ -1,0 +1,206 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .stats-card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+    .stat-value { font-size: 32px; font-weight: bold; color: #1890ff; }
+    .stat-label { color: #666; }
+    .chart-container { position: relative; height: 300px; }
+    .table-stats { font-size: 14px; }
+    .table-stats th { background: #f8f9fa; }
+    .value-cell { text-align: right; font-family: monospace; }
+</style>
+
+<div class="container-fluid mt-4">
+    <h3 class="mb-4">📊 数据报表统计</h3>
+    
+    <!-- 顶部统计卡片 -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stat-value">{{ stats.total_records }}</div>
+                <div class="stat-label">总记录数</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stat-value" style="color: #52c41a;">{{ stats.confirmed_records }}</div>
+                <div class="stat-label">已确认</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stat-value" style="color: #faad14;">{{ stats.pending_records }}</div>
+                <div class="stat-label">待确认</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stat-value" style="color: #722ed1;">${{ "{:,.0f}".format(stats.total_value) }}</div>
+                <div class="stat-label">出口总额 (USD)</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 图表和统计表格 -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="stats-card">
+                <h5 class="mb-4">📈 按年份统计</h5>
+                <div class="chart-container">
+                    <canvas id="yearChart"></canvas>
+                </div>
+                <table class="table table-sm table-stats mt-3">
+                    <thead>
+                        <tr><th>年份</th><th>记录数</th><th>出口金额</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for year, count, value in year_stats %}
+                        <tr>
+                            <td>{{ year }}</td>
+                            <td>{{ count }}</td>
+                            <td class="value-cell">${{ "{:,.0f}".format(value or 0) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="stats-card">
+                <h5 class="mb-4">📊 按HS编码统计</h5>
+                <div class="chart-container">
+                    <canvas id="hsChart"></canvas>
+                </div>
+                <table class="table table-sm table-stats mt-3">
+                    <thead>
+                        <tr><th>HS编码</th><th>记录数</th><th>出口金额</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for hs_code, count, value in hs_stats %}
+                        <tr>
+                            <td>{{ hs_code }}</td>
+                            <td>{{ count }}</td>
+                            <td class="value-cell">${{ "{:,.0f}".format(value or 0) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="stats-card">
+                <h5 class="mb-4">🌍 主要贸易伙伴 (Top 10)</h5>
+                <table class="table table-sm table-stats">
+                    <thead>
+                        <tr><th>排名</th><th>贸易伙伴</th><th>记录数</th><th>出口金额</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for partner, count, value in partner_stats %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ partner }}</td>
+                            <td>{{ count }}</td>
+                            <td class="value-cell">${{ "{:,.0f}".format(value or 0) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="stats-card">
+                <h5 class="mb-4">📦 数据来源分布</h5>
+                <div class="chart-container">
+                    <canvas id="sourceChart"></canvas>
+                </div>
+                <table class="table table-sm table-stats mt-3">
+                    <thead>
+                        <tr><th>数据来源</th><th>记录数</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for source, count in source_stats %}
+                        <tr>
+                            <td>{{ source or '未知' }}</td>
+                            <td>{{ count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 按年份统计图表
+const yearCtx = document.getElementById('yearChart').getContext('2d');
+const yearChart = new Chart(yearCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ year_stats | map(attribute=0) | list | tojson }},
+        datasets: [{
+            label: '记录数',
+            data: {{ year_stats | map(attribute=1) | list | tojson }},
+            backgroundColor: 'rgba(24, 144, 255, 0.8)',
+            borderColor: '#1890ff',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+    }
+});
+
+// 按HS编码统计图表
+const hsCtx = document.getElementById('hsChart').getContext('2d');
+const hsChart = new Chart(hsCtx, {
+    type: 'doughnut',
+    data: {
+        labels: {{ hs_stats | map(attribute=0) | list | tojson }},
+        datasets: [{
+            data: {{ hs_stats | map(attribute=2) | list | tojson }},
+            backgroundColor: [
+                '#1890ff', '#52c41a', '#faad14', '#722ed1', 
+                '#eb2f96', '#13c2c2', '#fa8c16', '#a0d911'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { 
+            legend: { position: 'bottom' },
+            title: { display: true, text: '出口金额分布 (USD)' }
+        }
+    }
+});
+
+// 数据来源图表
+const sourceCtx = document.getElementById('sourceChart').getContext('2d');
+const sourceChart = new Chart(sourceCtx, {
+    type: 'pie',
+    data: {
+        labels: {{ source_stats | map(attribute=0) | list | tojson }},
+        datasets: [{
+            data: {{ source_stats | map(attribute=1) | list | tojson }},
+            backgroundColor: ['#1890ff', '#52c41a', '#faad14', '#722ed1', '#eb2f96', '#13c2c2']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+    }
+});
+</script>
+{% endblock %}

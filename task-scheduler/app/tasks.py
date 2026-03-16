@@ -12,7 +12,7 @@ from app.worker import app, redis_client
 from app.crawler_adapter import CrawlerAdapter
 
 # 从 data-layer 导入
-from data_layer import get_db_session, CrawlerTask, TradeData
+from data_layer import get_db as get_db_session, CrawlerTask, TradeData
 from data_layer.database import DatabaseSession
 from sqlalchemy import text
 
@@ -51,8 +51,8 @@ def run_crawler(self, task_id: int, script_id: int, script_name: str,
         # 创建爬虫适配器并执行
         adapter = CrawlerAdapter(
             script_code=script_code,
-            hs_codes=kwargs.get("hs_codes", "851762,851770"),
-            periods=kwargs.get("periods", "2022,2023,2024"),
+            hs_codes=kwargs.get("hs_codes") or "851762,851770",
+            periods=kwargs.get("periods") or "2022,2023,2024",
             partners=kwargs.get("partners")
         )
         
@@ -180,22 +180,39 @@ def process_crawler_result(task_id: int, result: Dict[str, Any]):
 def poll_redis_queue():
     """轮询Redis队列中的任务"""
     try:
+        print("开始轮询队列...")
         task_data = redis_client.brpop("crawler_tasks", timeout=5)
+        print(f"从队列获取数据: {task_data}")
         
-        if task_data:
+        if task_data and len(task_data) == 2:
             _, task_json = task_data
-            task_info = json.loads(task_json)
+            print(f"任务JSON: {task_json}")
             
-            run_crawler.delay(
-                task_id=task_info["task_id"],
-                script_id=task_info["script_id"],
-                script_name=task_info["script_name"],
-                script_code=task_info["script_code"],
-                hs_codes=task_info.get("hs_codes"),
-                periods=task_info.get("periods"),
-                partners=task_info.get("partners"),
-                params=task_info.get("params", {})
-            )
+            if not task_json:
+                print("任务数据为空，跳过")
+                return
+            
+            try:
+                task_info = json.loads(task_json)
+                print(f"解析后的任务信息: {task_info}")
+                
+                run_crawler.delay(
+                    task_id=task_info["task_id"],
+                    script_id=task_info["script_id"],
+                    script_name=task_info["script_name"],
+                    script_code=task_info["script_code"],
+                    hs_codes=task_info.get("hs_codes"),
+                    periods=task_info.get("periods"),
+                    partners=task_info.get("partners"),
+                    params=task_info.get("params", {})
+                )
+                print(f"任务 {task_info['task_id']} 已提交执行")
+            except json.JSONDecodeError as je:
+                print(f"JSON解析错误: {je}, 原始数据: {repr(task_json)}")
+        else:
+            print("队列无任务或超时")
             
     except Exception as e:
         print(f"轮询队列失败: {str(e)}")
+        import traceback
+        traceback.print_exc()

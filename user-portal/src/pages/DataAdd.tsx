@@ -11,7 +11,7 @@ import {
   InputNumber,
   Space,
 } from 'antd'
-import { SaveOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons'
+import { SaveOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useMutation } from '@tanstack/react-query'
 import { tradeDataApi } from '../services/api'
 

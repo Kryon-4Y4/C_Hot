@@ -7,6 +7,11 @@ interface User {
   email: string
   full_name: string
   role: string
+  is_active?: boolean
+  is_superuser?: boolean
+  email_subscribed?: boolean
+  created_at?: string
+  last_login?: string
 }
 
 interface AuthState {

@@ -3,6 +3,10 @@ FROM phone-parts/data-layer:latest
 
 WORKDIR /app
 
+# 配置 pip 使用国内镜像源
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && \
+    pip config set global.trusted-host pypi.tuna.tsinghua.edu.cn
+
 # 复制任务调度额外依赖
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
@@ -10,5 +14,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 复制应用代码
 COPY app/ ./app/
 
-# 启动Celery Worker
-CMD ["celery", "-A", "app.worker", "worker", "--loglevel=info", "--concurrency=2"]
+# 启动Celery Worker（监听 default 和 crawler 队列）
+CMD ["celery", "-A", "app.worker", "worker", "--loglevel=info", "--concurrency=2", "-Q", "default,crawler"]

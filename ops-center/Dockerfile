@@ -3,6 +3,10 @@ FROM phone-parts/data-layer:latest
 
 WORKDIR /app
 
+# 配置 pip 使用国内镜像源
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && \
+    pip config set global.trusted-host pypi.tuna.tsinghua.edu.cn
+
 # 复制运维中心额外依赖
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

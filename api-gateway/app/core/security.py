@@ -4,15 +4,12 @@
 from datetime import datetime, timedelta
 from typing import Optional, Union
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from app.core.config import settings
 
-
-# 密码哈希上下文
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # HTTP Bearer认证
 security = HTTPBearer()
@@ -20,12 +17,21 @@ security = HTTPBearer()
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """验证密码"""
-    return pwd_context.verify(plain_password, hashed_password)
+    # 将字符串转换为 bytes
+    plain_bytes = plain_password.encode('utf-8')
+    hash_bytes = hashed_password.encode('utf-8') if isinstance(hashed_password, str) else hashed_password
+    return bcrypt.checkpw(plain_bytes, hash_bytes)
 
 
 def get_password_hash(password: str) -> str:
-    """获取密码哈希"""
-    return pwd_context.hash(password)
+    """获取密码哈希（bcrypt限制72字节）"""
+    # bcrypt 限制密码长度为 72 字节
+    password_bytes = password.encode('utf-8')
+    if len(password_bytes) > 72:
+        password_bytes = password_bytes[:72]
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    return hashed.decode('utf-8')
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -92,3 +98,21 @@ async def require_admin(current_user: dict = Depends(get_current_user)):
             detail="需要管理员权限"
         )
     return current_user
+
+
+async def get_current_user_optional(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+) -> Optional[dict]:
+    """获取当前用户（可选，不强制要求认证）"""
+    if not credentials:
+        return None
+    
+    payload = decode_token(credentials.credentials)
+    if payload is None:
+        return None
+    
+    username: str = payload.get("sub")
+    if username is None:
+        return None
+    
+    return {"username": username, "user_id": payload.get("user_id"), "role": payload.get("role")}

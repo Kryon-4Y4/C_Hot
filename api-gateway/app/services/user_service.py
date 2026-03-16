@@ -7,7 +7,7 @@ from typing import List, Optional
 from fastapi import HTTPException, status
 
 # 从 data-layer 导入模型
-from data_layer import User, UserRole
+from data_layer import User
 
 from app.schemas.user import UserCreate, UserUpdate
 from app.core.security import get_password_hash
@@ -72,9 +72,9 @@ class UserService:
             email=data.email,
             hashed_password=get_password_hash(data.password),
             full_name=data.full_name,
-            role=data.role if isinstance(data.role, UserRole) else UserRole(data.role),
+            role=data.role,
             is_active=data.is_active,
-            is_superuser=data.role == UserRole.ADMIN,
+            is_superuser=data.role == 'admin',
         )
         self.db.add(db_user)
         self.db.commit()
@@ -98,7 +98,7 @@ class UserService:
         
         # 处理角色更新
         if "role" in update_data and update_data["role"]:
-            db_user.role = UserRole(update_data["role"])
+            db_user.role = update_data["role"]
         
         # 更新其他字段
         for field, value in update_data.items():

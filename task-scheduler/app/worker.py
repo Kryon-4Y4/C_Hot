@@ -49,6 +49,14 @@ app.conf.update(
     # Beat调度器配置
     beat_schedule_filename="/tmp/celerybeat-schedule",
     beat_scheduler="celery.beat.PersistentScheduler",
+    
+    # 定时任务调度
+    beat_schedule={
+        "poll-crawler-queue": {
+            "task": "app.tasks.poll_redis_queue",
+            "schedule": 5.0,  # 每5秒轮询一次
+        },
+    },
 )
 
 # Redis客户端（用于队列监听）

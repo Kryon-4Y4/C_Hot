@@ -126,6 +126,7 @@ services:
     container_name: phone-parts-admin
     environment:
       - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-phone_parts_db}
+      - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
       - API_GATEWAY_URL=http://api-gateway:8000
     ports:
@@ -133,6 +134,7 @@ services:
     depends_on:
       - api-gateway
       - postgres
+      - redis
       - data-layer
     networks:
       - phone-parts-network

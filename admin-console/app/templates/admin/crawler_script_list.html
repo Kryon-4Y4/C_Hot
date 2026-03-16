@@ -1,0 +1,8 @@
+{% extends 'admin/model/list.html' %}
+
+{% block list_row_actions %}
+    {{ super() }}
+    <a href="{{ url_for('run_crawler', script_id=get_pk_value(row)) }}" class="icon" title="运行" onclick="return confirm('确定要运行这个爬虫脚本吗？');">
+        <i class="fa fa-play"></i>
+    </a>
+{% endblock %}

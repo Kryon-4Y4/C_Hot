@@ -37,7 +37,7 @@ const Dashboard: React.FC = () => {
       icon: <DollarOutlined style={{ color: '#52c41a' }} />,
       color: '#f6ffed',
       prefix: '$',
-      formatter: (val: number) => (val / 1000000000).toFixed(2) + 'B',
+      formatter: (val: any) => (Number(val) / 1000000000).toFixed(2) + 'B',
     },
     {
       title: '主要贸易伙伴',

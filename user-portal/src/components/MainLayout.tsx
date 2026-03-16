@@ -3,16 +3,15 @@ import { Layout, Menu, Button, Avatar, Dropdown, Space, Badge } from 'antd'
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  DashboardOutlined,
   DatabaseOutlined,
-  PlusOutlined,
-  BarChartOutlined,
   UserOutlined,
   LogoutOutlined,
   BellOutlined,
+  FileTextOutlined,
+  ApiOutlined,
 } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useAuthStore } from '../../store/authStore'
+import { useAuthStore } from '../store/authStore'
 
 const { Header, Sider, Content } = Layout
 
@@ -26,27 +25,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation()
   const { user, clearAuth } = useAuthStore()
 
-  // 菜单项
+  // 菜单项 - 只保留数据查询
   const menuItems = [
     {
       key: '/',
-      icon: <DashboardOutlined />,
-      label: '概览',
-    },
-    {
-      key: '/trade-data',
       icon: <DatabaseOutlined />,
       label: '数据查询',
-    },
-    {
-      key: '/data-add',
-      icon: <PlusOutlined />,
-      label: '添加数据',
-    },
-    {
-      key: '/statistics',
-      icon: <BarChartOutlined />,
-      label: '统计分析',
     },
   ]
 
@@ -73,7 +57,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       clearAuth()
       navigate('/login')
     } else if (key === 'profile') {
-      // 处理个人中心
+      navigate('/profile')
     }
   }
 
@@ -146,6 +130,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           />
 
           <Space size={16}>
+            {/* 文档链接 */}
+            <Button 
+              type="text" 
+              icon={<FileTextOutlined />}
+              onClick={() => window.open('http://localhost:8080', '_blank')}
+            >
+              项目文档
+            </Button>
+            <Button 
+              type="text" 
+              icon={<ApiOutlined />}
+              onClick={() => window.open('http://localhost:8000/docs', '_blank')}
+            >
+              API文档
+            </Button>
+            
             <Badge count={0} size="small">
               <Button type="text" icon={<BellOutlined />} />
             </Badge>
@@ -156,7 +156,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             >
               <Space style={{ cursor: 'pointer' }}>
                 <Avatar icon={<UserOutlined />} />
-                <span className="hide-on-mobile">{user?.full_name || user?.username}</span>
+                <span className="hide-on-mobile">{user?.full_name || user?.username || '访客'}</span>
               </Space>
             </Dropdown>
           </Space>

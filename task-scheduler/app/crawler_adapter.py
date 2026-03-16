@@ -26,6 +26,9 @@ class CrawlerAdapter:
         partners: Optional[str] = None
     ):
         self.script_code = script_code
+        # 处理 None 值，使用默认值
+        hs_codes = hs_codes or "851762,851770"
+        periods = periods or "2022,2023,2024"
         self.hs_codes = [code.strip() for code in hs_codes.split(",")]
         self.periods = [p.strip() for p in periods.split(",")]
         

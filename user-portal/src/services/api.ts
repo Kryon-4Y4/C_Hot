@@ -3,7 +3,7 @@ import { useAuthStore } from '../store/authStore'
 
 // 创建 axios 实例
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api/v1',
+  baseURL: (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api/v1',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -50,9 +50,15 @@ export const authApi = {
   login: (username: string, password: string) =>
     api.post('/auth/login', { username, password }),
   
+  register: (data: { username: string; email: string; password: string; email_subscribed?: boolean }) =>
+    api.post('/auth/register', data),
+  
   logout: () => api.post('/auth/logout'),
   
   getMe: () => api.get('/auth/me'),
+  
+  subscribeEmail: (subscribe: boolean = true) =>
+    api.post('/auth/subscribe-email', null, { params: { subscribe } }),
 }
 
 // 外贸数据API

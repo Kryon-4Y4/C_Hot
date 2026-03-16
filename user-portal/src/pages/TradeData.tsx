@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import {
   Table,
   Card,
@@ -6,13 +6,11 @@ import {
   Select,
   Button,
   Space,
-  DatePicker,
   Tag,
   Popconfirm,
   message,
   Row,
   Col,
-  Typography,
 } from 'antd'
 import {
   SearchOutlined,
@@ -25,11 +23,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tradeDataApi } from '../services/api'
 import dayjs from 'dayjs'
 
-const { RangePicker } = DatePicker
 const { Option } = Select
-const { Text } = Typography
 
-const TradeData: React.FC = () => {
+interface TradeDataProps {
+  readOnly?: boolean
+}
+
+const TradeData: React.FC<TradeDataProps> = ({ readOnly = false }) => {
   const queryClient = useQueryClient()
   const [filters, setFilters] = useState({
     year: undefined,
@@ -75,8 +75,8 @@ const TradeData: React.FC = () => {
     },
   })
 
-  // 表格列定义
-  const columns = [
+  // 基础表格列定义
+  const baseColumns: any[] = [
     {
       title: '年份',
       dataIndex: 'year',
@@ -147,11 +147,15 @@ const TradeData: React.FC = () => {
       width: 180,
       render: (date: string) => date ? dayjs(date).format('YYYY-MM-DD HH:mm') : '-',
     },
+  ]
+
+  // 管理操作列（仅非只读模式显示）
+  const actionColumn = readOnly ? [] : [
     {
       title: '操作',
       key: 'action',
       width: 150,
-      fixed: 'right',
+      fixed: 'right' as const,
       render: (_: any, record: any) => (
         <Space size="small">
           {record.status === 'pending' && (
@@ -186,6 +190,8 @@ const TradeData: React.FC = () => {
     },
   ]
 
+  const columns = [...baseColumns, ...actionColumn]
+
   const handleSearch = () => {
     setFilters(prev => ({ ...prev, page: 1 }))
     refetch()
@@ -204,7 +210,9 @@ const TradeData: React.FC = () => {
 
   return (
     <div>
-      <h2 style={{ marginBottom: 24 }}>外贸数据查询</h2>
+      <h2 style={{ marginBottom: 24 }}>
+        {readOnly ? '外贸数据公开查询' : '外贸数据管理'}
+      </h2>
 
       {/* 筛选区域 */}
       <Card style={{ marginBottom: 24 }}>
@@ -275,7 +283,7 @@ const TradeData: React.FC = () => {
           dataSource={data?.items || []}
           rowKey="id"
           loading={isLoading}
-          scroll={{ x: 1200 }}
+          scroll={{ x: readOnly ? 1100 : 1200 }}
           pagination={{
             current: filters.page,
             pageSize: filters.page_size,

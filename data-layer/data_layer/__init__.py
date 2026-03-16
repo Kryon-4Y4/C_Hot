@@ -10,10 +10,13 @@ from data_layer.database import (
     SessionLocal,
     get_db,
     init_db,
+    DatabaseSession,
 )
+
+# 兼容性别名
+get_db_session = get_db
 from data_layer.models import (
     User,
-    UserRole,
     TradeData,
     CrawlerScript,
     CrawlerTask,
@@ -29,10 +32,11 @@ __all__ = [
     "engine",
     "SessionLocal",
     "get_db",
+    "get_db_session",
+    "DatabaseSession",
     "init_db",
     # 模型
     "User",
-    "UserRole",
     "TradeData",
     "CrawlerScript",
     "CrawlerTask",
