@@ -28,20 +28,35 @@ class TradeDataService:
         page: int = 1,
         page_size: int = 20,
         sort_by: str = "created_at",
-        sort_order: str = "desc"
+        sort_order: str = "desc",
+        require_confirmed: bool = True
     ) -> Tuple[List[TradeData], int]:
-        """获取数据列表（支持筛选和分页）"""
+        """获取数据列表（支持筛选和分页）
+        
+        Args:
+            filter_params: 筛选参数
+            page: 页码
+            page_size: 每页数量
+            sort_by: 排序字段
+            sort_order: 排序方向
+            require_confirmed: 是否只返回已确认数据（默认True，公开接口使用）
+        """
         query = self.db.query(TradeData)
         
-        # 应用筛选条件
+        # 默认只返回已确认数据（公开接口）
+        if require_confirmed:
+            query = query.filter(TradeData.status == "confirmed")
+        elif filter_params.status:
+            # 管理员指定了状态，则按指定状态筛选
+            query = query.filter(TradeData.status == filter_params.status)
+        
+        # 应用其他筛选条件
         if filter_params.year:
             query = query.filter(TradeData.year == filter_params.year)
         if filter_params.hs_code:
             query = query.filter(TradeData.hs_code.contains(filter_params.hs_code))
         if filter_params.trade_partner:
             query = query.filter(TradeData.trade_partner.contains(filter_params.trade_partner))
-        if filter_params.status:
-            query = query.filter(TradeData.status == filter_params.status)
         if filter_params.start_date:
             query = query.filter(TradeData.created_at >= filter_params.start_date)
         if filter_params.end_date:
@@ -137,9 +152,19 @@ class TradeDataService:
         self.db.refresh(db_data)
         return db_data
     
-    def get_statistics(self, year: Optional[int] = None) -> dict:
-        """获取统计数据"""
+    def get_statistics(self, year: Optional[int] = None, require_confirmed: bool = True) -> dict:
+        """获取统计数据
+        
+        Args:
+            year: 指定年份
+            require_confirmed: 是否只统计已确认数据（默认True，公开接口使用）
+        """
         query = self.db.query(TradeData)
+        
+        # 默认只统计已确认数据
+        if require_confirmed:
+            query = query.filter(TradeData.status == "confirmed")
+        
         if year:
             query = query.filter(TradeData.year == year)
         

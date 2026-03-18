@@ -89,12 +89,14 @@ graph TB
 
 ### 分层说明
 
-| 层级 | 组件 | 职责 | 数据权限 | 访问控制 |
+| 层级 | 组件 | 职责 | 数据权限 | 访问方式 |
 |------|------|------|---------|---------|
-| **用户访问层** | user-portal<br>admin-console<br>ops-center<br>documentation | 用户门户（React）<br>管理后台（Flask-Admin）<br>运维监控<br>项目文档 | 只读查询<br>完整CRUD + 任务触发<br>监控查询<br>静态文档 | JWT认证<br>JWT认证<br>Internal<br>- |
-| **API 网关层** | api-gateway | 统一入口、JWT认证、权限校验、路由<br>任务调度API（仅管理员） | 权限控制代理 | 所有请求必经 |
-| **业务服务层** | task-scheduler<br>crawler | 异步任务调度（Celery）<br>UN Comtrade数据抓取 | 读取脚本配置<br>写入待确认数据 | 仅内部服务调用<br>无外网暴露 |
+| **用户访问层** | user-portal<br>admin-console<br>ops-center<br>documentation | 用户门户（React）<br>管理后台（Flask-Admin）<br>运维监控<br>项目文档 | 只读查询<br>完整CRUD + 任务触发<br>监控查询<br>静态文档 | API Gateway<br>直接DB¹ + API Gateway<br>Internal<br>- |
+| **API 网关层** | api-gateway | 统一入口、JWT认证、权限校验<br>公开接口默认只返回已确认数据 | 权限控制代理 | 统一接入点 |
+| **业务服务层** | task-scheduler<br>crawler | 异步任务调度（Celery）<br>UN Comtrade数据抓取 | 读取脚本配置<br>写入待确认数据 | 仅内部服务调用 |
 | **数据基础设施层** | data-layer<br>PostgreSQL<br>Redis | 共享ORM模型<br>主数据库<br>任务队列/缓存 | 数据持久化 | 内网访问 |
+
+> **¹ 说明**: Admin Console 的报表功能直接查询数据库（Flask-Admin 设计模式），数据管理操作通过 API Gateway。
 
 
 ### 核心流程
@@ -298,16 +300,24 @@ with get_db_session() as db:
 
 ## 核心功能特性
 
-### 1. 外贸数据管理
-- **数据审核流程**: 
-  - 爬虫抓取的数据标记为「待确认」
-  - 管理员审核后确认，数据变为「已确认」
-  - 仅「已确认」数据对用户可见
-- **多维度查询**: 按年份、HS编码、贸易伙伴、状态筛选
+### 1. 外贸数据管理（带审核流程）
+- **数据状态流转**:
+  ```
+  爬虫抓取 ──► pending（待确认）──► 管理员确认 ──► confirmed（已确认）
+                    │                                      │
+                    └────── 管理员查看 ──────────────────────┘
+                                           │
+                                           ▼
+                                    普通用户查看
+  ```
+- **权限分级**:
+  - **普通用户**: 仅通过 API Gateway 查看已确认(confirmed)数据
+  - **管理员**: 
+    - 查看所有状态数据（直接查询数据库）
+    - 确认/拒绝待确认数据（通过 API Gateway）
+    - 编辑/删除已确认数据
+- **多维度查询**: 按年份、HS编码、贸易伙伴筛选
 - **数据导出**: 支持CSV格式导出
-- **权限分级**: 
-  - 管理员：查看所有数据 + 确认操作
-  - 普通用户：仅查看已确认数据
 
 ### 2. 爬虫任务调度（仅管理员）
 - **脚本配置管理**: 管理员在 Admin Console 配置爬虫参数（HS编码、年份、贸易伙伴等）

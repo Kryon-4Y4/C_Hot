@@ -1,6 +1,6 @@
 """
 爬虫适配器
-适配 crawler/mobile_phone_spare_parts_crawler.py 脚本
+从数据库读取脚本配置，适配 crawler/mobile_phone_spare_parts_crawler.py 脚本
 """
 import os
 import sys
@@ -15,17 +15,39 @@ from typing import List, Dict, Any, Optional, Callable
 class CrawlerAdapter:
     """
     爬虫适配器
-    将现有的爬虫脚本集成到调度服务中
+    从数据库读取脚本配置，将现有的爬虫脚本集成到调度服务中
     """
     
     def __init__(
         self,
+        script_config: Optional[Dict] = None,
         script_code: Optional[str] = None,
         hs_codes: str = "851762,851770",
         periods: str = "2022,2023,2024",
         partners: Optional[str] = None
     ):
-        self.script_code = script_code
+        """
+        初始化爬虫适配器
+        
+        Args:
+            script_config: 从数据库读取的完整脚本配置字典
+            script_code: 脚本代码（兼容旧版参数）
+            hs_codes: HS编码列表（兼容旧版参数）
+            periods: 年份周期（兼容旧版参数）
+            partners: 贸易伙伴配置（兼容旧版参数）
+        """
+        self.script_config = script_config or {}
+        
+        # 优先使用 script_config 中的配置，其次使用单独参数
+        if script_config:
+            # 从数据库配置读取参数
+            self.script_code = script_config.get('code', '')
+            hs_codes = script_config.get('hs_codes', hs_codes)
+            periods = script_config.get('periods', periods)
+            partners = script_config.get('partners', partners)
+        else:
+            self.script_code = script_code
+        
         # 处理 None 值，使用默认值
         hs_codes = hs_codes or "851762,851770"
         periods = periods or "2022,2023,2024"
@@ -67,6 +89,27 @@ class CrawlerAdapter:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept": "application/json, text/plain, */*",
         }
+    
+    @classmethod
+    def from_script_model(cls, script_model) -> "CrawlerAdapter":
+        """
+        从数据库脚本模型创建适配器
+        
+        Args:
+            script_model: CrawlerScript 模型实例
+        
+        Returns:
+            CrawlerAdapter: 配置好的适配器实例
+        """
+        return cls(script_config={
+            'id': script_model.id,
+            'name': script_model.name,
+            'code': script_model.code,
+            'hs_codes': script_model.hs_codes,
+            'periods': script_model.periods,
+            'partners': script_model.partners,
+            'is_active': script_model.is_active,
+        })
     
     def build_params(self, hs_code: str, period: str, partner: str = "0") -> Dict:
         """构建请求参数"""

@@ -77,6 +77,7 @@ def run_crawler(self, task_id: int, script_id: int, script_name: str,
                     }).fetchone()
                     
                     if existing:
+                        # 已存在的数据，更新为待确认状态（管理员需要重新确认）
                         session.execute(text("""
                             UPDATE trade_data SET
                                 hs_description = :hs_description,
@@ -87,11 +88,15 @@ def run_crawler(self, task_id: int, script_id: int, script_name: str,
                                 trade_mode = :trade_mode,
                                 data_source = :data_source,
                                 crawled_at = :crawled_at,
+                                status = 'pending',
+                                confirmed_by = NULL,
+                                confirmed_at = NULL,
                                 updated_at = NOW()
                             WHERE id = :id
                         """), {**record, "id": existing[0]})
                         updated_count += 1
                     else:
+                        # 新数据，插入为待确认状态（管理员需要确认后才对用户可见）
                         session.execute(text("""
                             INSERT INTO trade_data (
                                 year, hs_code, hs_description, trade_partner,
@@ -101,7 +106,7 @@ def run_crawler(self, task_id: int, script_id: int, script_name: str,
                             ) VALUES (
                                 :year, :hs_code, :hs_description, :trade_partner,
                                 :export_quantity, :quantity_unit, :export_value_usd,
-                                :unit_value_usd, :trade_mode, :data_source, 'confirmed',
+                                :unit_value_usd, :trade_mode, :data_source, 'pending',
                                 :crawled_at, NOW()
                             )
                         """), record)
